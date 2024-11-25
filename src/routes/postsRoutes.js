@@ -1,6 +1,12 @@
 import express from "express";
 import multer from "multer";
 import { atualizarNovoPost, listarPosts, novoPost, uploadImagem } from "../controller/postsController.js";
+import cors from "cors"
+
+const corsOptions = {
+    origin: "http://localhost:8000",
+    optionsSuccessStatus: 200
+}
 
 // Configura o armazenamento dos arquivos em disco
 const storage = multer.diskStorage({
@@ -22,6 +28,8 @@ const routes = (app) => {
     // Habilita o parsing de JSON no corpo das requisições
     app.use(express.json());
 
+    app.use(cors(corsOptions))
+    
     // Rota para buscar todos os posts
     app.get("/posts", listarPosts);
 

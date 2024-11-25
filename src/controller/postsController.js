@@ -1,5 +1,6 @@
 import { getTodosPosts, criarPost, atualizarPost } from "../models/postsModel.js";
 import fs from "fs"
+import gerarDescricaoComGemini from "../services/geminiService.js";
 
 export async function listarPosts(req, res) {
     // Busca todos os posts do banco de dados
@@ -53,19 +54,26 @@ export async function atualizarNovoPost(req, res) {
     // Requisição de dados e preparacão para a atuaização
     const id        = req.params.id;
     const urlImg    = `http://localhost:3000/${id}.png`
-    const post      = {
-        imgUrl:     urlImg,
-        descricao:  req.body.descricao,
-        alt:        req.body.alt
-    }
-
+    
     try {
+        // Cria um buffer da imagem para ser mostrado ao Gemini
+        const imgBuffer = fs.readFileSync(`uploads/${id}.png`);
+
+        // Variavel para guardar a descrição criada pelo gemini
+        const altText = await gerarDescricaoComGemini(imgBuffer);
+        
+        const post      = {
+            imgUrl:     urlImg,
+            descricao:  req.body.descricao,
+            alt:        altText
+        }
+
         // Atualiza o post no banco de dados
         const postCriado = await atualizarPost(id, post);
 
         // Envia o post criado como resposta em formato JSON
         res.status(200).json(postCriado);
-        
+
     } catch (e) {
         // Loga o erro no console
         console.error(e.message);
